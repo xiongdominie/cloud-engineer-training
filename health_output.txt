@@ -1,0 +1,37 @@
+===== SERVER HEALTH CHECK =====
+Timestamp:
+Thu Jan 29 19:20:06 UTC 2026
+
+Hostname:
+ip-172-31-19-211
+
+Uptime:
+ 19:20:06 up 2 days,  1:38,  1 user,  load average: 0.00, 0.00, 0.00
+
+Memory:
+               total        used        free      shared  buff/cache   available
+Mem:           914Mi       388Mi       117Mi       2.7Mi       576Mi       525Mi
+Swap:             0B          0B          0B
+
+Disk:
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/root        6.8G  2.3G  4.5G  34% /
+tmpfs            458M     0  458M   0% /dev/shm
+tmpfs            183M  888K  182M   1% /run
+tmpfs            5.0M     0  5.0M   0% /run/lock
+efivarfs         128K  3.8K  120K   4% /sys/firmware/efi/efivars
+/dev/nvme0n1p16  881M   89M  730M  11% /boot
+/dev/nvme0n1p15  105M  6.2M   99M   6% /boot/efi
+tmpfs             92M   12K   92M   1% /run/user/1000
+
+Top CPU Processes:
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+ubuntu     14567  0.0  0.7  14996  7200 ?        S    18:48   0:00 sshd: ubuntu@pts/0
+root       14458  0.0  0.0      0     0 ?        I    18:48   0:00 [kworker/0:3-events]
+root       14444  0.0  0.0      0     0 ?        I    18:40   0:00 [kworker/1:1-events]
+root         190  0.0  2.9 288952 27292 ?        SLsl Jan27   0:14 /sbin/multipathd -d -s
+root       14655  0.0  0.0      0     0 ?        I    19:10   0:00 [kworker/u8:2-events_unbound]
+root        3048  0.0  3.4 1924032 31856 ?       Ssl  Jan28   0:09 /snap/snapd/current/usr/lib/snapd/snapd
+root       14659  0.0  0.0      0     0 ?        I    19:10   0:00 [kworker/u8:5-efi_rts_wq]
+ubuntu     14456  0.0  1.2  20292 11492 ?        Ss   18:48   0:00 /usr/lib/systemd/systemd --user
+root       14445  0.0  0.0      0     0 ?        I    18:42   0:00 [kworker/u8:1-events_power_efficient]
