@@ -26,4 +26,4 @@ Dashboard metrics were validated by generating CPU load on the EC2 instance.
 
 ### Command executed:
 ```bash
-stress-ng --cpu 2 --cpu-method matrixprod --timeout 60s
+stress-ng --cpu 2 --cpu-method matrixprod --timeout 80m
