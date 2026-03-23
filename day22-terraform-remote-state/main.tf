@@ -14,10 +14,10 @@ data "aws_ami" "amazon_linux" {
 }
 resource "aws_instance" "day21_example" {
   ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t3.micro"
+  instance_type = var.instance_type
 
   tags = {
-    Name        = "Dee-ec2-day22"
-    Environment = "dev"
+    Name        = var.instance_name
+    Environment = var.environment
   }
 }
