@@ -1,23 +1,7 @@
-provider "aws" {
-  region = "us-east-1"
-}
+module "ec2_instance" {
+  source = "./modules/ec2"
 
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-
-  owners = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-}
-resource "aws_instance" "day21_example" {
-  ami           = data.aws_ami.amazon_linux.id
+  ami           = var.ami
   instance_type = var.instance_type
-
-  tags = {
-    Name        = var.instance_name
-    Environment = var.environment
-  }
+  instance_name = var.instance_name
 }
