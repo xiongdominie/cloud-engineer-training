@@ -1,0 +1,13 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!environments/*.tfvars
+
+# Terraform plan files
+*.plan
+plan.txt
+
+# Mac files
+.DS_Store
