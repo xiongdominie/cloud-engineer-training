@@ -23,6 +23,8 @@ module "alb" {
   health_check_path     = "/"
   health_check_matcher  = "200"
 
+  access_logs_bucket = aws_s3_bucket.alb_logs.bucket
+
   depends_on = [aws_security_group.alb_sg]
 }
 
@@ -31,3 +33,5 @@ resource "aws_lb_target_group_attachment" "ec2" {
   target_id        = module.ec2_instance.instance_id
   port             = 80
 }
+
+

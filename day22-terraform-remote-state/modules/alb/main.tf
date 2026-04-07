@@ -5,6 +5,11 @@ resource "aws_lb" "this" {
   security_groups    = var.security_group_ids
   subnets            = var.subnet_ids
 
+  access_logs {
+  bucket  = var.access_logs_bucket
+  enabled = true
+}
+
   tags = {
     Name = "${var.name_prefix}-alb"
   }

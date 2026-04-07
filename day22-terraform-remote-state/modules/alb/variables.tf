@@ -53,3 +53,8 @@ variable "listener_protocol" {
   type        = string
   default     = "HTTP"
 }
+
+variable "access_logs_bucket" {
+  description = "S3 bucket name for ALB access logs"
+  type        = string
+}
