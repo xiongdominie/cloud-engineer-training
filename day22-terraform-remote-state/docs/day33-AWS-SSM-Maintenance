@@ -1,0 +1,198 @@
+# Day 33 — AWS Systems Manager Maintenance Windows
+
+## Objective
+
+Automate patching of EC2 instances using AWS Systems Manager Maintenance Windows so patching can run on a schedule instead of being triggered manually.
+
+---
+
+## What is a Maintenance Window?
+
+A Maintenance Window is a scheduled period in AWS Systems Manager during which maintenance tasks can run automatically on managed instances.
+
+Examples:
+
+* Patch servers weekly
+* Run maintenance scripts
+* Restart services during approved windows
+
+---
+
+## Why Maintenance Windows Matter
+
+### Automation
+
+* Removes the need to manually run maintenance tasks
+* Helps standardize recurring operational work
+
+### Consistency
+
+* Ensures patching happens on a predictable schedule
+* Reduces the chance of missed maintenance
+
+### Operational Control
+
+* Lets teams define when maintenance is allowed
+* Helps reduce risk during business hours
+
+---
+
+## Environment
+
+* Region: us-east-1
+* Instances:
+
+  * ec2-ssm-lab
+  * ec2-ssm-lab-2
+  * ec2-ssm-lab-3
+* Instances were already SSM managed and online
+
+---
+
+## Steps Performed
+
+### 1. Created Maintenance Window
+
+Created a maintenance window with the following configuration:
+
+* Name: `weekly-patching-window`
+* Schedule: `rate(7 days)`
+* Duration: `3 hours`
+* Cutoff: `1 hour`
+* Allow unregistered targets: enabled
+
+---
+
+### 2. Registered Targets
+
+Initially registered targets for the maintenance window.
+
+During troubleshooting, I verified that the instances were:
+
+* Running
+* Visible in Systems Manager
+* Online in SSM
+
+---
+
+### 3. Registered Run Command Task
+
+Created a maintenance window task using:
+
+* Task type: `Run command`
+* Document: `AWS-RunPatchBaseline`
+
+Initial task targeting used registered target groups.
+
+---
+
+## Troubleshooting and Debugging
+
+### Issue Observed
+
+When checking maintenance window history, the execution showed:
+
+* Status: `Success`
+* Status details: `No tasks to execute`
+
+This meant the maintenance window ran, but no instances were actually matched for task execution.
+
+---
+
+### Root Cause
+
+The issue was with task targeting.
+
+The task existed, but indirect targeting through registered target groups did not properly match the instances during execution.
+
+---
+
+### Validation Performed
+
+To isolate the issue, I manually ran `AWS-RunPatchBaseline` through Run Command and confirmed:
+
+* All 3 instances were selectable
+* All 3 instances were online
+* SSM connectivity was working correctly
+
+This proved the problem was not SSM itself, but the maintenance window task targeting configuration.
+
+---
+
+### Fix Applied
+
+Edited targeting so the instances were selected directly.
+
+Updated targeting to:
+
+* Choose instances manually
+* Select all 3 EC2 instances explicitly
+
+This removed ambiguity from the maintenance window task.
+
+---
+
+## Command / Document Used
+
+Main Systems Manager document used:
+
+* `AWS-RunPatchBaseline`
+
+Validation showed platform-aware execution behavior:
+
+* Windows step skipped on Linux instances
+* This was expected behavior, not a failure
+
+Example interpretation:
+
+* If a Windows-specific patch step is skipped on Amazon Linux, that is normal because the document contains OS-specific logic.
+
+---
+
+## Key Learnings
+
+* A maintenance window schedule alone is not enough; the task and targets must match correctly
+* “Success” in history does not always mean the intended work ran
+* Direct instance targeting is sometimes more reliable than indirect target group matching during labs and troubleshooting
+* `AWS-RunPatchBaseline` contains OS-specific steps, so skipped Windows steps on Linux are expected
+* Real validation means checking execution output, not just trusting green status indicators
+
+---
+
+## Real-World Relevance
+
+This simulates how cloud engineers automate recurring patching tasks in production environments.
+
+It also reflects real operational troubleshooting:
+
+* Confirm the schedule exists
+* Confirm the task exists
+* Confirm targets are matched
+* Validate execution output
+* Fix targeting when automation does not actually run
+
+---
+
+## Result
+
+Successfully built and validated a scheduled maintenance window for EC2 patching using AWS Systems Manager.
+
+Completed:
+
+* Maintenance window creation
+* Task registration
+* Target validation
+* Troubleshooting of targeting issue
+* Manual execution validation
+* Confirmation that Systems Manager patch workflow works across the fleet
+
+---
+
+## Screenshot Evidence
+
+Add screenshots showing:
+
+* Maintenance window configuration
+* Task registration
+* History / troubleshooting
+* Run Command validation output
