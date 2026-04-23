@@ -1,0 +1,260 @@
+# Day 35–36: Self-Healing Systems & High Availability Architecture
+
+## Overview
+
+In these sessions, I designed and implemented a production-style cloud monitoring and recovery system on AWS. The system evolved from basic service monitoring into a fully automated, self-healing infrastructure with failure escalation and high availability design.
+
+---
+
+## Day 35 — Smart Auto-Recovery with Verification
+
+### Objective
+
+Upgrade basic auto-recovery to a reliable system that verifies recovery success and escalates failures.
+
+---
+
+### What I Built
+
+#### 1. Service Monitoring (Custom Metric)
+
+* Created a script to monitor nginx status
+* Sent metric to CloudWatch:
+
+  * `1` = nginx running
+  * `0` = nginx down
+
+#### 2. Automated Detection
+
+* Configured CloudWatch alarm:
+
+  * Trigger when `NginxRunning < 1`
+* Alarm triggers EventBridge
+
+#### 3. Auto-Recovery (EventBridge + SSM)
+
+* EventBridge rule executes:
+
+  * `AWS-RunShellScript`
+* Runs recovery action on EC2:
+
+  * restart nginx
+
+---
+
+### Upgrade: Smart Recovery Script
+
+Created:
+
+```bash
+nginx-recovery.sh
+```
+
+Logic:
+
+* Attempt restart
+* Wait 5 seconds
+* Verify nginx status
+* If failure → send custom metric
+
+```bash
+aws cloudwatch put-metric-data \
+--namespace "Custom/Nginx" \
+--metric-name "NginxRecoveryFailed" \
+--value 1
+```
+
+---
+
+### Key Improvement
+
+Moved from:
+
+* Blind restart ❌
+
+To:
+
+* Restart + verify + signal failure ✅
+
+---
+
+### Failure Alerting
+
+Created second CloudWatch alarm:
+
+* Metric: `NginxRecoveryFailed`
+* Condition: `>= 1`
+* Action: SNS email notification
+
+---
+
+### Final System (Day 35)
+
+```
+nginx down
+→ CloudWatch alarm
+→ EventBridge
+→ SSM runs recovery script
+→ verify success
+→ if fail → send metric
+→ second alarm triggers email
+```
+
+---
+
+### Outcome
+
+* Built a self-healing system
+* Implemented failure escalation
+* Successfully tested full pipeline with real failure simulation
+
+---
+
+## Day 36 — High Availability (No Downtime Architecture)
+
+### Objective
+
+Eliminate downtime by designing a fault-tolerant system using multiple servers and load balancing.
+
+---
+
+### Key Concept
+
+From:
+
+```
+1 server → failure → recovery (downtime exists)
+```
+
+To:
+
+```
+2+ servers → failure → traffic rerouted → no downtime
+```
+
+---
+
+### Architecture
+
+```
+        Internet
+            ↓
+   Application Load Balancer
+        ↙         ↘
+   EC2 #1       EC2 #2
+   (nginx)      (nginx)
+```
+
+---
+
+### What I Built
+
+#### 1. Multiple EC2 Instances
+
+* Launched second EC2 instance
+* Installed and configured nginx
+* Ensured same security group and IAM role
+
+---
+
+#### 2. Target Group
+
+* Created target group (HTTP:80)
+* Registered both EC2 instances
+* Configured health checks
+
+---
+
+#### 3. Application Load Balancer (ALB)
+
+* Internet-facing ALB
+* Attached target group
+* Configured listener (HTTP:80)
+
+---
+
+### Health Check Behavior
+
+* ALB continuously checks instance health
+* Unhealthy instances are automatically removed from rotation
+
+---
+
+### Failure Test
+
+Simulated failure:
+
+```bash
+sudo systemctl stop nginx
+```
+
+Result:
+
+* ALB detected unhealthy instance
+* Traffic routed to healthy instance
+* No user-visible downtime
+
+---
+
+### Key Improvement
+
+From:
+
+* Reactive recovery (fix after failure)
+
+To:
+
+* Proactive resilience (avoid impact entirely)
+
+---
+
+## Key Concepts Learned
+
+### 1. Monitoring vs Events
+
+* Continuous metrics (NginxRunning)
+* Event-based metrics (NginxRecoveryFailed)
+
+---
+
+### 2. Separation of Concerns
+
+* Detection
+* Recovery
+* Verification
+* Alerting
+
+Each handled independently
+
+---
+
+### 3. Self-Healing Systems
+
+* Automatically detect and fix failures
+* Escalate only when automation fails
+
+---
+
+### 4. High Availability Design
+
+* Remove single point of failure
+* Use redundancy + load balancing
+* Ensure zero or minimal downtime
+
+---
+
+## Final Outcome
+
+Built a production-style system with:
+
+* Monitoring (CloudWatch)
+* Automation (EventBridge + SSM)
+* Self-healing logic
+* Failure escalation (SNS alerts)
+* High availability (ALB + multi-instance)
+
+---
+
+## Resume-Level Summary
+
+Implemented a self-healing and highly available web service on AWS using EC2, CloudWatch, EventBridge, and Systems Manager. Designed custom monitoring metrics, automated recovery workflows with verification logic, and failure alerting. Extended architecture to multi-instance deployment with Application Load Balancer to achieve fault tolerance and eliminate downtime.

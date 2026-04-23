@@ -1,0 +1,188 @@
+# Day 34: Monitoring, Alerting, and Automated Recovery Pipeline
+
+## Overview
+
+In this session, I built a full monitoring and automated recovery pipeline for an EC2-hosted nginx service using AWS CloudWatch, EventBridge, and Systems Manager (SSM). This established the foundation for self-healing infrastructure.
+
+---
+
+## Objective
+
+Detect when nginx goes down, automatically attempt recovery, and validate system behavior using real cloud monitoring tools.
+
+---
+
+## What I Built
+
+### 1. Nginx Deployment on EC2
+
+* Installed nginx on Amazon Linux EC2 instance
+* Verified service status using:
+
+```bash
+sudo systemctl status nginx
+```
+
+---
+
+### 2. Custom Monitoring Script
+
+Created script to check nginx status and send metric to CloudWatch:
+
+```bash
+nginx-check.sh
+```
+
+Logic:
+
+* If nginx running → send `1`
+* If nginx down → send `0`
+
+```bash
+aws cloudwatch put-metric-data \
+--namespace "Custom/Nginx" \
+--metric-name "NginxRunning" \
+--value 1 or 0
+```
+
+---
+
+### 3. Automation with Cron
+
+Configured cron job to run every minute:
+
+```bash
+* * * * * /home/ssm-user/nginx-check.sh
+```
+
+Purpose:
+
+* Continuously monitor nginx status
+* Send real-time health data to CloudWatch
+
+---
+
+### 4. CloudWatch Metric Visualization
+
+* Verified metric in:
+
+  * `Custom/Nginx → NginxRunning`
+* Observed values:
+
+  * `1` = healthy
+  * `0` = failure
+
+---
+
+### 5. CloudWatch Alarm (Service Down Detection)
+
+Created alarm:
+
+* Metric: `NginxRunning`
+* Condition: `< 1`
+* Period: 1 minute
+* Action: trigger alert + automation
+
+---
+
+### 6. SNS Notification
+
+* Created SNS topic
+* Subscribed email
+* Confirmed subscription
+* Received alerts when nginx stopped
+
+---
+
+### 7. EventBridge Integration
+
+Created rule to respond to alarm:
+
+* Trigger: CloudWatch Alarm State Change
+* Filter: specific alarm in ALARM state
+
+---
+
+### 8. Systems Manager (SSM) Run Command
+
+Configured EventBridge target:
+
+* Document: `AWS-RunShellScript`
+* Target: EC2 instance
+* Command:
+
+```bash
+sudo systemctl start nginx
+```
+
+---
+
+## Full System Flow
+
+```text
+nginx stops
+→ cron detects failure
+→ CloudWatch metric = 0
+→ alarm triggers
+→ EventBridge rule fires
+→ SSM executes command
+→ nginx restarts
+```
+
+---
+
+## Testing
+
+Simulated failure:
+
+```bash
+sudo systemctl stop nginx
+```
+
+Observed:
+
+* Metric dropped from 1 → 0
+* Alarm triggered
+* Email notification received
+* nginx automatically restarted
+
+---
+
+## Key Concepts Learned
+
+### 1. Custom Metrics
+
+* CloudWatch only tracks metrics after data is sent
+* Metrics must be emitted (not predefined)
+
+---
+
+### 2. Continuous Monitoring
+
+* Cron used for periodic health checks
+* Enabled real-time observability
+
+---
+
+### 3. Event-Driven Automation
+
+* CloudWatch → EventBridge → SSM pipeline
+* Enabled automated response to failures
+
+---
+
+### 4. Infrastructure as a System
+
+* Combined monitoring, alerting, and automation into a single workflow
+
+---
+
+## Outcome
+
+Successfully built a basic self-healing system capable of:
+
+* Detecting service failure
+* Automatically recovering service
+* Notifying user of incidents
+
+This serves as the foundation for more advanced recovery logic and high availability systems.
