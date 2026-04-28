@@ -1,0 +1,47 @@
+
+---
+
+# 📄 **Day 38 — Auto Scaling Group (Self-Healing Infrastructure)**
+
+```md
+# Day 38 — Auto Scaling Group (ASG)
+
+## Objective
+Automate instance creation, replacement, and scaling using Auto Scaling Groups.
+
+---
+
+## Architecture Upgrade
+
+Before:
+ALB → EC2 instances (manual)
+
+After:
+ALB → Target Group → ASG → EC2 instances (automatic)
+
+---
+
+## Steps Completed
+
+### 1. Created Launch Template
+
+Configuration:
+- AMI: Amazon Linux
+- Instance type: t2.micro
+- Security group: HTTP (port 80)
+- IAM role: SSM + CloudWatch
+
+---
+
+### User Data Script
+
+```bash
+#!/bin/bash
+yum update -y
+yum install nginx -y
+systemctl start nginx
+systemctl enable nginx
+
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+
+echo "SERVER $INSTANCE_ID" > /usr/share/nginx/html/index.html

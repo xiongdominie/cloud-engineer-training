@@ -1,0 +1,26 @@
+# Day 37 — High Availability (ALB + Target Groups)
+
+## Objective
+Implement high availability by distributing traffic across multiple EC2 instances using an Application Load Balancer.
+
+---
+
+## Architecture
+
+User → ALB → Target Group → EC2 Instance A + EC2 Instance B
+
+---
+
+## Steps Completed
+
+### 1. Launched Two EC2 Instances
+- Same AMI (Amazon Linux)
+- Same instance type
+- Same security group (HTTP port 80 open)
+- Same IAM role (SSM + CloudWatch)
+
+Installed nginx on both:
+```bash
+sudo yum install nginx -y
+sudo systemctl start nginx
+sudo systemctl enable nginx
